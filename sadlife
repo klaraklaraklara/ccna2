@@ -1,0 +1,118 @@
+CISCO CCNA 2
+
+navrhnete adresaci
+192.168.x.x /24 
+
+no ip domain-lookup na všech zariadeniach
+
+S2 (config)
+vlan 7 
+name Yellow
+vlan 8 
+name Management
+vlan 9 
+name Native
+
+(ptm pc do vlan 7 switch 8 a zbytok musí byť v native - 9)
+
+int vlan 7
+int f0/1
+switchport mode access
+switchport access vlan 7
+
+int range f0/2 -7,  f0/9 - 24 , g0/1-2 
+switchport mode access
+switchport access vlan 9
+shutdown
+
+do show vlan brief
+
+na porte na nulovanie - no switchport access vlan 8
+
+MEDZI ROUTEROM A SWITCHOM TRUNK A MEDZI SWITCHAMI TRUNK 
+
+S2 (config)
+int f0/8 
+switchport mode trunk
+switchport trunk native 9 (podla native vlany)
+switchport trunk allowed vlan 7, 8, 9
+
+zapnuť port na R1 -  no shut
+
+R1(conf)
+int g0/0/1
+no shut
+
+int g0/0/1.7
+description Yellow
+encapsulation dot1q 7
+ip add 192.168.7.1 255.255.255.0
+
+int g0/0/1.8
+description Management
+encapsulation dot1q 8
+ip add 192.168.8.1 255.255.255.0
+
+int g0/0/1.9
+description Native VLAN
+encapsulation dot1q 9 native
+ipp add not recommended!
+
+show ip int brief
+
+conf t 
+int0/0/0 
+no shut - zapnúť port
+
+-----
+
+R2(conf t)
+int g0/0/0
+no shut
+ip add 192.168.1.1 255.255.255.0 (z ineho random rozasahu)
+
+R1(conf t)
+int g0/0/0
+no shut
+ip add 192.169.1.2 255.255.255.0
+
+STATICKÉ SMEROVANIE
+
+R2(conf t)
+ip route 192.168.7.0  255.255.255.0  192.168.1.2
+ip route 192.168.8.0  255.255.255.0  192.168.1.2
+ip route 192.168.9.0  255.255.255.0  192.168.1.2
+
+int loopback1
+ip add 192.168.100.1 255.255.255.0 
+
+R1(conf t)
+ip route 192.168.100.0 255.255.255.0 192.168.1.1
+do show ip route [S] - static [C] - connected  
+
+DHCP
+
+R2(conf t)
+ip dhcp excluded add 192.168.7.1  (tie čo používam)
+ip dhcp pool R3_vlan7
+network 192.168.7.0 255.255.255.0
+domain name 227248.com
+default-router 192.168.7.1
+lease 2 12 30
+
+R1(conf t)
+int g0/0/1.7 (ten k routeru)
+ip helper-add 192.168.1.1 (druhý router)
+- relay agent by sa nerobil ak by to bolo priamo pripojene
+
+PC
+ipconfig /renew
+ipconfig /release (ked ma ip add tak ju zahodí)
+
+sticky
+všetky interfaces
+Int fa0/1
+switchport port-security
+switchport port-security maximum 2 
+switchport port-security mac-address sticky
+
