@@ -11,11 +11,13 @@ name Yellow
 
 vlan 8 
 name Management
-ip add 192.168.8.10 255.255.255.0
 
 vlan 9 
 name Native
 
+int vlan 8
+ip add 192.168.8.10 255.255.255.0
+no shut
 
 (ptm pc do vlan 7 switch 8 a zbytok musí byť v native - 9)
 
