@@ -1,1 +1,104 @@
-201.160.x.x
+201.160.x.x 
+
+vytvorte vlan a pripojit vlan 11 na pc a vlan 22 na switch
+
+(S2)
+vlan 11
+name Host
+vlan 12
+name Switch
+vlan 99
+name Native
+
+int g0/2 (zo switcha na pc)
+switchport mode access
+switchport access vlan 11
+
+int vlan 12
+ip add 201.160.12.1 255.255.255.0
+no sh
+- 
+
+(S1-L3)
+vlan 11
+name Host
+vlan 12
+name Switch
+vlan 99
+name Native
+
+int vlan 11
+ip add 201.160.11.3 255.255.255.0
+no sh
+
+int g0/1
+switchport mode trunk
+switchport trunk allowed vlan 11,12,99
+switchport trunk native vlan 99
+
+int g0/2
+switchport mode trunk
+switchport trunk allowed vlan 11,12,99
+switchport trunk native vlan 99
+
+port k R1- smerovaný port
+int g0/1
+no switchport
+-------------
+
+(R1)
+int g0/0/0
+201.160.50.1 255.255.255.0
+no sh
+
+(S1-L3)
+int g0/1
+201.160.50.2 255.255.255.0
+no sh
+
+STATICKE SMEROVANIE
+(S1-L3)
+ip routing
+ip route 0.0.0.0 0.0.0.0 201.160.50.1
+
+(R1)
+ip route 210.160.11.0 255.255.255.0 201.160.50.2
+
+(S2)
+nemusí byť /ip default-gateway 201.160.11.3
+ 
+----------------------------------------------
+DHCP 
+pc - vlan 11
+
+(R1)
+ip dhcp excluded add 201.160.11.1 201.160.11.10 (vyhodím adresu ktore už zariadenie maju aby to nedal počítaču)
+ip dhcp pool vlan11
+network 201.160.11.0 255.255.255.0
+domain-name 227248.com
+default-router 201.160.11.1
+lease 2 12 30
+
+(S1-L3) (posledný L3 k ceste späť k PC)
+int g0/0/1.11 (ten čo ide k routeru.vlan)
+ip helper-add 192.168.50.1 (druhý router, interface ktory tam jde)
+- relay agent by sa nerobil ak by to bolo priamo pripojene
+
+PC
+ipconfig /renew
+ipconfig /release (ked ma ip add tak ju zahodí)
+
+-----------------------------------------------
+
+STICKY ZABEZPEČENIE 
+interface ktorý ide zo switcha do PC
+Int fa0/1
+switchport port-security
+switchport port-security maximum 2 
+switchport port-security mac-address sticky
+
+
+
+
+
+
