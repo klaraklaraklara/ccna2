@@ -8,14 +8,17 @@ no ip domain-lookup na všech zariadeniach
 S2 (config)
 vlan 7 
 name Yellow
+
 vlan 8 
 name Management
+ip add 192.168.8.10 255.255.255.0
+
 vlan 9 
 name Native
 
+
 (ptm pc do vlan 7 switch 8 a zbytok musí byť v native - 9)
 
-int vlan 7
 int f0/1
 switchport mode access
 switchport access vlan 7
@@ -27,7 +30,7 @@ shutdown
 
 do show vlan brief
 
-na porte na nulovanie - no switchport access vlan 8
+(na porte na nulovanie - no switchport access vlan 8)
 
 MEDZI ROUTEROM A SWITCHOM TRUNK A MEDZI SWITCHAMI TRUNK 
 
