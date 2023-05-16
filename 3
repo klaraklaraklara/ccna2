@@ -1,0 +1,119 @@
+### Vytvořte VLAN 6,7,8,9 ###
+
+S1 (config)
+
+vlan 6
+name Student
+vlan 7
+name Switch
+vlan 8
+name Management
+vlan 9
+name Native
+
+S2 (config)
+
+vlan 6
+name Student
+vlan 7
+name Switch
+vlan 8
+name Management
+vlan 9
+name Native
+
+int f0/1
+switchport mode access
+switchport access vlan 6
+
+### Vytvořte Etherchannel s pomocí LACP ###
+
+S1
+int range f0/10-11
+switchport mode trunk
+shut
+
+S2
+int range f0/10-11
+switchport mode trunk
+shut
+
+S1 - dale pokracuji jen jsem potrebovala udelat na obou tuto vec - musi byt shut na tento postup!
+channel-group 1 mode active
+no shut
+interface port-channel 1
+switchport mode trunk
+
+S2 - dale pokracuji jen jsem potrebovala udelat na obou tuto vec - musi byt shut na tento postup!
+channel-group 1 mode active
+no shut
+interface port-channel 1
+switchport mode trunk
+
+-overuju pomoci show etherchannel summary - jinak thats all
+
+### Vytvořte trunkové linky a povolte jen existující trunky ### - trunky jsou potreba mezi S1/S2 a R1 a S1 a S2 - tam uz je ale etherchannel trunkovy tak tam neresim
+
+S1
+int f0/18
+switchport mode trunk
+switchport trunk native vlan 9 (podla native vlany)
+switchport trunk allowed vlan 6, 7, 8, 9
+
+S2
+int f0/9
+switchport mode trunk
+switchport trunk native vlan 9 (podla native vlany)
+switchport trunk allowed vlan 6, 7, 8, 9
+
+- kontroluju pomoci show interfaces trunk - nesmi byt shut na routeru! 
+
+### Na R1 nastavte směrování mezi VLAN ###
+R1 - protoze G0/0 je zapojeno na S2 a pc0 tak tam nastavuju vlany 6+7 a na g0/1 vlan 8
+
+R1
+conf t
+int g0/0/0.6
+description Student
+encapsulation dot1Q 6
+ip address 180.10.6.1 255.255.255.0
+
+int g0/0/0.7
+description Switch
+encapsulation dot1Q 7
+ip address 180.10.7.1 255.255.255.0
+
+int g0/0/0.9
+description Native VLAN
+encapsulation dot1q 9 native
+
+int g0/0/1.8
+description Management
+encapsulation dot1q 8
+ip address 180.10.8.1 255.255.255.0
+
+int g0/0/1.9
+description Native VLAN
+encapsulation dot1q 9 native
+
+### Na R1 nastavte DHCP server pro Vlan 6 pro PC ###
+ip dhcp excluded-address 180.10.6.1  (tie čo používam)
+ip dhcp pool R1_vlan6
+network 180.10.6.0 255.255.255.0
+domain-name 221584.com
+default-router 180.10.6.1
+lease 2 12 30 //nefunguje v paket traceru, ale na routerech ve skole ano
+
+### Na S2 nastavte zapezpečení přístupových portů metodou sticky - max MAC adres 3 ###
+protoze je pripojen PC nastavuju jen na f0/1 
+
+S2
+Int fa0/1
+switchport port-security
+switchport port-security maximum 3
+switchport port-security mac-address sticky
+
+### Vytvoreni loopbacku na R1 ###
+int loopback1
+ip add 180.10.100.1 255.255.255.0 
+
