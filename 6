@@ -1,0 +1,110 @@
+Lo2 - (R1)
+      g0/0/0
+      -
+      F0/4
+Lo1 - (L3-S2) f0/2-3 ===== f0/2-3 (S1) f0/1 - PC
+
+(S1)
+vlan 10
+name Red
+vlan 20
+name Blue
+vlan 99
+name Native
+
+int f0/1
+switch mode ac
+switch ac vlan 10
+
+int range f0/2-3
+shut
+chanel-gr 1 mode access
+no sh
+
+int po 1
+switch mode trunk
+switch trunk native vlan 99
+swi trunk al vlan 10,20,99
+
+ip default-gate 192.168.20.2
+
+int vlan 20
+ip add 192:168.20.1 
+no sh
+
+-------------------------------------------------
+(L3-S2) 
+
+vlan 10
+name Red
+vlan 20
+name Blue
+vlan 99
+name Native
+
+int range f0/2-3
+shut
+chanel-gr 1 mode access
+no sh
+
+int po 1 
+swi trunk enc dot1q
+switch mode trunk
+switch trunk native vlan 99
+swi trunk al vlan 10,20,99
+
+int vlan 10
+ip add 192.168.10.2
+no sh
+
+int vlan 20
+ip add 192.168.20.2
+no sh
+
+int vlan 99
+no sh
+
+ip routing
+
+int f0/4
+no switchport
+ip add 192.168.1.2
+
+ip route 0.0.0.0 0.0.0.0. 192.168.1.1
+
+int lo1
+ip add 192.169.3.1
+
+ip dhcp excluded-add 192.168.10.1 192.168.10.255
+ip dhcp pool P1
+network 192.168.10.0
+default-router 192.168.10.2
+
+-------------------------------------------------
+(R1) 
+int g0.0.0
+no sh
+ip add 192.168.1.1
+
+int lo2
+ip add 192,168.4.1
+
+ip route 0.0.0.0 0.0.0.0. 192.168.1.2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
