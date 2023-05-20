@@ -1,0 +1,174 @@
+L3S2 f0/1 - f0/1 L3S3
+f0/3-4         f0/5-6
+l                l
+   f0/3-4    f0/5-6
+         S1
+         f0/2
+         PC
+         
+--------------------------------------        
+(S1)
+vlan 10
+name First
+vlan 20
+name Second
+vlan 30
+name Native
+
+int f0/2
+switch mode access
+switch vlan 10
+
+---
+int range F0/3-4
+shut
+switchport trunk encapsulation dot1q
+channel group 1 mode active
+no sh
+
+int port-channel 1
+swi mode trunk
+swi trunk nat vlan 30
+swi trunk all vlan 10,20,30
+
+--- 
+int range F0/5-6
+shut
+switchport trunk encapsulation dot1q
+channel group 2 mode active
+no sh
+
+int port-channel 2
+swi mode trunk
+swi trunk nat vlan 30
+swi trunk all vlan 10,20,30
+
+---
+ip def-gat 100.138.20.2
+
+int vlan 20 
+ip add 100.138.20.1 
+no sh
+
+--------------------------------------        
+(L3S2)
+vlan 10
+name First
+vlan 20
+name Second
+vlan 30
+name Native
+
+int vlan 10
+ip add 100.138.10.2 
+no sh
+
+int vlan 20 
+ip add 100.138.20.2
+no sh
+
+int vlan 30 
+no sh
+
+---
+int range F0/3-4
+shut
+channel group 1 mode active
+no sh
+
+int port-channel 1
+swi mode trunk
+swi trunk nat vlan 30
+swi trunk all vlan 10,20,30
+
+---
+ip routing 
+
+int f0/1 
+no switchport
+ip add 100.138.1.1
+
+ip route 0.0.0.0 0.0.0.0. 100.138.1.2
+
+
+--------------------------------------        
+(L3S2)
+vlan 10
+name First
+vlan 20
+name Second
+vlan 30
+name Native
+
+int vlan 10
+ip add 100.138.10.3
+no sh
+
+int vlan 20 
+ip add 100.138.20.3
+no sh
+
+int vlan 30 
+no sh
+
+---
+int range F0/5-6
+shut
+channel group 2 mode desirable
+no sh
+
+int port-channel 1
+swi mode trunk
+swi trunk nat vlan 30
+swi trunk all vlan 10,20,30
+
+---
+ip routing 
+
+int f0/1 
+no switchport
+ip add 100.138.1.1
+
+ip route 0.0.0.0 0.0.0.0. 100.138.1.1
+
+-------------------------
+HSRP
+(L3S1)
+
+vlan 10
+% standby ver 2
+stand 1 ip 100.138.10.100
+stand 1 priority 150
+standby 1 preempt
+
+vlan 20
+% standby ver 2
+stand 2 ip 100.138.20.100
+stand 2 priority 150
+standby 2 preempt
+
+(L3S1)
+
+vlan 10
+standby ver 2
+standby 1 ip 100.138.10.100
+
+vlan 20
+standby ver 2
+standby 1 ip 100.138.20.100
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
