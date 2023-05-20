@@ -1,0 +1,135 @@
+R1  g0/0/1  ---  g0/0/1 R2
+g0/0/0                g0/0/0
+     -             -
+     f0/2  SW  F0/3
+           f0/1
+           -
+           PC
+           
+PC 10.0.10.1
+d.g 10.0.10.100 10.0.10.2
+
+(SW)
+vlan 10
+name Red
+vlan 20
+name Management
+valn 999
+name Native
+
+int f 0/1
+sw mode access
+sw acc vlan 10
+switchport port-security
+switchport port-security maximum 2 
+switchport port-security mac-address sticky
+
+int vlan 20
+ip add 10.0.20.1 255.255.255.0
+
+int f0/2
+switchport mode trunk
+switchport trunk native vlan 999 (podla native vlany)
+switchport trunk allowed vlan 10,20,999
+
+int f0/3
+switchport mode trunk
+switchport trunk native vlan 999 (podla native vlany)
+switchport trunk allowed vlan 10,20,999
+
+ip def-gat 10.0.20.100 / 10.0.20.2
+
+-------------------
+(R1)
+
+int g0/0/0
+no sh
+
+int g0/0/0.10
+encapsulation dot1q 10
+ip add 10.0.10.2 255.255.255.0
+no sh
+
+int g0/0/0.20
+encapsulation dot1q 20
+ip add 10.0.20.2 255.255.255.0
+no sh
+
+int g0/0/0.999
+encapsulation dot1q 999
+ip add 10.0.99.2 255.255.255.0
+no sh
+
+int g0/0/1
+ip add 10.0.1.1 255.255.255.0
+no sh
+
+
+-------------------
+(R2)
+
+int g0/0/0
+no sh
+
+int g0/0/0.10
+encapsulation dot1q 10
+ip add 10.0.10.3 255.255.255.0
+no sh
+
+int g0/0/0.20
+encapsulation dot1q 20
+ip add 10.0.20.3 255.255.255.0
+no sh
+
+int g0/0/0.999
+encapsulation dot1q 999
+ip add 10.0.99.3 255.255.255.0
+no sh
+
+int g0/0/1
+ip add 10.0.1.2 255.255.255.0
+no sh
+
+------------------------
+HSRP (vlan 10 a 20, R1 je aktivny)
+
+int g0/0/0.10
+% standby ver 2
+stand 1 ip 10.0.10.100
+stand 1 priority 110
+standby 1 preempt
+
+int g0/0/0.20
+% standby ver 2
+stand 2 ip 10.0.10.100
+stand 2 priority 110
+standby 2 preempt
+
+(L3S1)
+
+int g0/0/0.10
+standby ver 2
+stand 1 ip 10.0.10.100
+
+
+int g0/0/0.20
+standby ver 2
+stand 1 ip 10.0.20.100
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
