@@ -116,6 +116,17 @@ int g0/0/0.20
 standby ver 2
 stand 1 ip 10.0.20.100
 
+-------------------
+SSH
+R1
+
+ip domain-name CCNA.com
+username 227248 secret admin
+crypto key generate rsa general-keys mod 1024
+
+line vty 0 4
+transport input ssh
+login local
 
 
 
